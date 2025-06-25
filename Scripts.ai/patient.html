@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Patient Portal - CareQ.ai</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    .clinic-card {
+      transition: all 0.3s;
+      border-left: 3px solid #0d6efd;
+    }
+    .clinic-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+<body>
+  <!-- Navigation -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container">
+      <a class="navbar-brand" href="#">
+        <img src="assets/logo.png" height="30" class="me-2"> CareQ.ai
+      </a>
+      <div>
+        <span class="text-light me-3" id="patientGreeting"></span>
+        <button class="btn btn-outline-light btn-sm" id="logoutBtn">
+          <i class="fas fa-sign-out-alt me-1"></i> Logout
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="container my-5">
+    <div class="row">
+      <div class="col-lg-4">
+        <div class="card mb-4">
+          <div class="card-header bg-primary text-white">
+            <h4><i class="fas fa-search me-2"></i>Find Care</h4>
+          </div>
+          <div class="card-body">
+            <form id="appointmentForm">
+              <div class="mb-3">
+                <label class="form-label">Symptoms</label>
+                <textarea class="form-control" id="symptoms" rows="3" required></textarea>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Urgency</label>
+                <select class="form-select" id="urgency" required>
+                  <option value="routine">Routine (14+ days)</option>
+                  <option value="urgent">Urgent (3-7 days)</option>
+                  <option value="emergency">Emergency (24h)</option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Location</label>
+                <input type="text" class="form-control" id="location" placeholder="Enter postal code" required>
+              </div>
+              <button type="submit" class="btn btn-primary w-100">
+                <i class="fas fa-search me-1"></i> Find Doctors
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-8">
+        <div class="card">
+          <div class="card-header bg-success text-white">
+            <h4><i class="fas fa-robot me-2"></i>AI Recommendations</h4>
+          </div>
+          <div class="card-body">
+            <div id="loading" class="text-center py-5">
+              <div class="spinner-border text-primary"></div>
+              <p class="mt-2">Finding best options...</p>
+            </div>
+            <div id="results" class="d-none">
+              <div class="row g-3" id="doctorResults">
+                <!-- Filled by JavaScript -->
+              </div>
+              <div class="mt-4">
+                <h5><i class="fas fa-map-marked-alt me-2"></i>Clinic Locations</h5>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Booking Modal -->
+  <div class="modal fade" id="bookingModal" tabindex="-1">
+    <!-- Modal content would go here -->
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Check authentication on load
+    document.addEventListener('DOMContentLoaded', function() {
+      const userData = JSON.parse(sessionStorage.getItem('careqUser'));
+      
+      if (!userData || userData.type !== 'patient') {
+        window.location.href = 'index.html';
+        return;
+      }
+
+      // Show patient name
+      document.getElementById('patientGreeting').textContent = `Welcome, ${userData.name}`;
+
+      // Logout handler
+      document.getElementById('logoutBtn').addEventListener('click', function() {
+        sessionStorage.removeItem('careqUser');
+        window.location.href = 'index.html';
+      });
+
+      // Mock appointment search
+      document.getElementById('appointmentForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const loading = document.getElementById('loading');
+        const results = document.getElementById('results');
+        
+        loading.classList.remove('d-none');
+        results.classList.add('d-none');
+        
+        // Simulate API call
+        setTimeout(function() {
+          loading.classList.add('d-none');
+          results.classList.remove('d-none');
+          loadMockDoctors();
+        }, 1500);
+      });
+    });
+
+    function loadMockDoctors() {
+      const doctors = [
+        {
+          id: 1,
+          name: "Dr. Sarah Chen",
+          specialty: "Cardiology",
+          availability: "June 28, 10:00 AM",
+          distance: "2.5 km",
+          hospital: "Toronto General"
+        },
+        {
+          id: 2,
+          name: "Dr. Michael Wong",
+          specialty: "Neurology",
+          availability: "June 30, 2:00 PM",
+          distance: "5.1 km",
+          hospital: "Sunnybrook"
+        }
+      ];
+
+      const container = document.getElementById('doctorResults');
+      container.innerHTML = '';
+
+      doctors.forEach(doctor => {
+        container.innerHTML += `
+          <div class="col-md-6">
+            <div class="card clinic-card h-100">
+              <div class="card-body">
+                <h5>${doctor.name}</h5>
+                <p class="text-success mb-1"><strong>${doctor.specialty}</strong></p>
+                <p class="mb-1"><i class="fas fa-clock me-1"></i> ${doctor.availability}</p>
+                <p class="mb-1"><i class="fas fa-hospital me-1"></i> ${doctor.hospital}</p>
+                <p class="mb-3"><i class="fas fa-location-arrow me-1"></i> ${doctor.distance}</p>
+                <button class="btn btn-primary btn-sm book-btn" data-id="${doctor.id}">
+                  Book Appointment
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+
+      // Add booking handlers
+      document.querySelectorAll('.book-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const doctorId = this.getAttribute('data-id');
+          alert(`Booking appointment with doctor ID: ${doctorId}\n(Would connect to backend in real app)`);
+        });
+      });
+    }
+  </script>
+</body>
+</html>
