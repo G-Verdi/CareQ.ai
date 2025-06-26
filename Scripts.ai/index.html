@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>CareQ.ai - Login</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
   <style>
     body {
       background-color: #f8f9fa;
@@ -26,7 +26,7 @@
 <body>
   <div class="container py-5">
     <div class="text-center mb-5">
-      <img src="assets/logo.png" alt="CareQ.ai" width="150" class="mb-3">
+      <img src="assets/logo.png" alt="CareQ.ai" width="150" class="mb-3"/>
       <h2>AI-Driven Healthcare Scheduling</h2>
     </div>
 
@@ -40,22 +40,18 @@
           <div class="card-body">
             <form id="patientLoginForm">
               <div class="mb-3">
-                <label class="form-label">Username</label>
-                <input type="text" class="form-control" id="patientUsername" required>
+                <label class="form-label">Email</label>
+                <input type="email" class="form-control" id="patientEmail" required />
               </div>
               <div class="mb-3">
                 <label class="form-label">Password</label>
-                <input type="password" class="form-control" id="patientPassword" required>
+                <input type="password" class="form-control" id="patientPassword" required />
               </div>
               <div id="patientLoginError" class="alert alert-danger d-none"></div>
               <button type="submit" class="btn btn-primary w-100">
                 <i class="fas fa-sign-in-alt me-1"></i> Login
               </button>
             </form>
-            <div class="mt-3 small text-muted">
-              <strong>Test Patients:</strong><br>
-              smr/smr, brain/brain, toronto/toronto
-            </div>
           </div>
         </div>
       </div>
@@ -69,82 +65,83 @@
           <div class="card-body">
             <form id="adminLoginForm">
               <div class="mb-3">
-                <label class="form-label">Username</label>
-                <input type="text" class="form-control" id="adminUsername" required>
+                <label class="form-label">Email</label>
+                <input type="email" class="form-control" id="adminEmail" required />
               </div>
               <div class="mb-3">
                 <label class="form-label">Password</label>
-                <input type="password" class="form-control" id="adminPassword" required>
+                <input type="password" class="form-control" id="adminPassword" required />
               </div>
               <div id="adminLoginError" class="alert alert-danger d-none"></div>
               <button type="submit" class="btn btn-danger w-100">
                 <i class="fas fa-sign-in-alt me-1"></i> Login
               </button>
             </form>
-            <div class="mt-3 small text-muted">
-              <strong>Test Admins:</strong><br>
-              admin1/admin1, admin2/admin2
-            </div>
           </div>
         </div>
       </div>
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+
   <script>
-    // Simple Auth System
-    const users = {
-      patients: {
-        "smr": { password: "smr", name: "Sam Rogers" },
-        "brain": { password: "brain", name: "Brain Smith" },
-        "toronto": { password: "toronto", name: "Toronto Clinic" }
-      },
-      admins: {
-        "admin1": { password: "admin1", name: "Main Admin" },
-        "admin2": { password: "admin2", name: "Clinic Manager" }
-      }
+    const firebaseConfig = {
+      apiKey: "AIzaSyAVcmOkOgh3yhI0K5SwF2wF0vcODxaX9xs",
+      authDomain: "healthcarebookingapp-bf56b.firebaseapp.com",
+      projectId: "healthcarebookingapp-bf56b",
+      storageBucket: "healthcarebookingapp-bf56b.appspot.com",
+      messagingSenderId: "572904226489",
+      appId: "1:572904226489:web:7a62b3c5fe5dda285e2568"
     };
 
-    // Patient Login
-    document.getElementById('patientLoginForm').addEventListener('submit', function(e) {
-      e.preventDefault();
-      const username = document.getElementById('patientUsername').value;
-      const password = document.getElementById('patientPassword').value;
-      const errorEl = document.getElementById('patientLoginError');
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
 
-      if (users.patients[username] && users.patients[username].password === password) {
-        // Save to session and redirect
-        sessionStorage.setItem('careqUser', JSON.stringify({
-          type: 'patient',
-          username: username,
-          name: users.patients[username].name
-        }));
-        window.location.href = 'patient.html';
-      } else {
-        errorEl.textContent = 'Invalid username or password';
-        errorEl.classList.remove('d-none');
-      }
+    // Patient Login
+    document.getElementById("patientLoginForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+      const email = document.getElementById("patientEmail").value;
+      const password = document.getElementById("patientPassword").value;
+      const errorEl = document.getElementById("patientLoginError");
+
+      auth.signInWithEmailAndPassword(email, password)
+        .then(userCredential => {
+          sessionStorage.setItem("careqUser", JSON.stringify({
+            type: "patient",
+            email: userCredential.user.email,
+            uid: userCredential.user.uid
+          }));
+          window.location.href = "patient.html";
+        })
+        .catch(error => {
+          errorEl.textContent = error.message;
+          errorEl.classList.remove("d-none");
+        });
     });
 
     // Admin Login
-    document.getElementById('adminLoginForm').addEventListener('submit', function(e) {
+    document.getElementById("adminLoginForm").addEventListener("submit", function (e) {
       e.preventDefault();
-      const username = document.getElementById('adminUsername').value;
-      const password = document.getElementById('adminPassword').value;
-      const errorEl = document.getElementById('adminLoginError');
+      const email = document.getElementById("adminEmail").value;
+      const password = document.getElementById("adminPassword").value;
+      const errorEl = document.getElementById("adminLoginError");
 
-      if (users.admins[username] && users.admins[username].password === password) {
-        sessionStorage.setItem('careqUser', JSON.stringify({
-          type: 'admin',
-          username: username,
-          name: users.admins[username].name
-        }));
-        window.location.href = 'admin.html';
-      } else {
-        errorEl.textContent = 'Invalid username or password';
-        errorEl.classList.remove('d-none');
-      }
+      auth.signInWithEmailAndPassword(email, password)
+        .then(userCredential => {
+          sessionStorage.setItem("careqUser", JSON.stringify({
+            type: "admin",
+            email: userCredential.user.email,
+            uid: userCredential.user.uid
+          }));
+          window.location.href = "admin.html";
+        })
+        .catch(error => {
+          errorEl.textContent = error.message;
+          errorEl.classList.remove("d-none");
+        });
     });
   </script>
 </body>

@@ -1,11 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Patient Portal - CareQ.ai</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  />
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+  />
   <style>
     .clinic-card {
       transition: all 0.3s;
@@ -13,7 +19,7 @@
     }
     .clinic-card:hover {
       transform: translateY(-3px);
-      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
     }
   </style>
 </head>
@@ -22,7 +28,7 @@
   <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
     <div class="container">
       <a class="navbar-brand" href="#">
-        <img src="assets/logo.png" height="30" class="me-2"> CareQ.ai
+        <img src="assets/logo.png" height="30" class="me-2" /> CareQ.ai
       </a>
       <div>
         <span class="text-light me-3" id="patientGreeting"></span>
@@ -36,6 +42,7 @@
   <!-- Main Content -->
   <div class="container my-5">
     <div class="row">
+      <!-- Form Section -->
       <div class="col-lg-4">
         <div class="card mb-4">
           <div class="card-header bg-primary text-white">
@@ -45,7 +52,12 @@
             <form id="appointmentForm">
               <div class="mb-3">
                 <label class="form-label">Symptoms</label>
-                <textarea class="form-control" id="symptoms" rows="3" required></textarea>
+                <textarea
+                  class="form-control"
+                  id="symptoms"
+                  rows="3"
+                  required
+                ></textarea>
               </div>
               <div class="mb-3">
                 <label class="form-label">Urgency</label>
@@ -57,7 +69,13 @@
               </div>
               <div class="mb-3">
                 <label class="form-label">Location</label>
-                <input type="text" class="form-control" id="location" placeholder="Enter postal code" required>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="location"
+                  placeholder="Enter city or postal code"
+                  required
+                />
               </div>
               <button type="submit" class="btn btn-primary w-100">
                 <i class="fas fa-search me-1"></i> Find Doctors
@@ -67,22 +85,20 @@
         </div>
       </div>
 
+      <!-- AI Recommendations Section -->
       <div class="col-lg-8">
         <div class="card">
           <div class="card-header bg-success text-white">
-            <h4><i class="fas fa-robot me-2"></i>AI Recommendations</h4>
+            <h4><i class="fas fa-robot me-2"></i> AI Recommendations</h4>
           </div>
           <div class="card-body">
-            <div id="loading" class="text-center py-5">
+            <div id="loading" class="text-center py-5 d-none">
               <div class="spinner-border text-primary"></div>
               <p class="mt-2">Finding best options...</p>
             </div>
             <div id="results" class="d-none">
               <div class="row g-3" id="doctorResults">
-                <!-- Filled by JavaScript -->
-              </div>
-              <div class="mt-4">
-                <h5><i class="fas fa-map-marked-alt me-2"></i>Clinic Locations</h5>
+                <!-- Dynamic clinic cards here -->
               </div>
             </div>
           </div>
@@ -91,99 +107,242 @@
     </div>
   </div>
 
-  <!-- Booking Modal -->
-  <div class="modal fade" id="bookingModal" tabindex="-1">
-    <!-- Modal content would go here -->
-  </div>
+  <!-- Firebase SDKs (compat) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Google Maps API -->
+  <script
+    async
+    defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAs6OBCykBf36UDrigmNQqztDgwyYPdHYo"
+  ></script>
+
   <script>
-    // Check authentication on load
-    document.addEventListener('DOMContentLoaded', function() {
-      const userData = JSON.parse(sessionStorage.getItem('careqUser'));
+    
+    // Firebase config (apna config yahan daal)
+    const firebaseConfig = {
+  apiKey: "AIzaSyAVcmOkOgh3yhI0K5SwF2wF0vcODxaX9xs",
+  authDomain: "healthcarebookingapp-bf56b.firebaseapp.com",
+  projectId: "healthcarebookingapp-bf56b",
+  storageBucket: "healthcarebookingapp-bf56b.firebasestorage.app",
+  messagingSenderId: "572904226489",
+  appId: "1:572904226489:web:7a62b3c5fe5dda285e2568",
+  measurementId: "G-T9D80FW11T"
+};
+
+const user = JSON.parse(sessionStorage.getItem("careqUser"));
+  if (!user || user.type !== "patient") {
+    window.location.href = "index.html";
+  }
+
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // Sample clinics data (add more as needed)
+    const clinics = [
+      {
+        clinic: "CareWell Health",
+        city: "brampton",
+        specialist: "Neurologist",
+        available_date: "2025-07-03",
+        urgency_level: "emergency",
+        lat: 43.7315,
+        lng: -79.7624
+      },
+      {
+        clinic: "Uptown Family Clinic",
+        city: "mississauga",
+        specialist: "General Physician",
+        available_date: "2025-07-05",
+        urgency_level: "urgent",
+        lat: 43.589,
+        lng: -79.644
+      },
+
+      {
+    clinic: "CareWell Health",
+    city: "toronto",
+    specialist: "Neurologist",
+    available_date: "2025-07-03",
+    urgency_level: "emergency",
+    lat: 43.7315,
+    lng: -79.7624
+  },
+  {
+    clinic: "Family Clinic",
+    city: "mississauga",
+    specialist: "General Physician",
+    available_date: "2025-07-05",
+    urgency_level: "urgent",
+    lat: 43.589,
+    lng: -79.644
+  }
       
-      if (!userData || userData.type !== 'patient') {
-        window.location.href = 'index.html';
+    ];
+
+    // On page load
+    document.addEventListener("DOMContentLoaded", () => {
+      // Check user session
+      const userData = JSON.parse(sessionStorage.getItem("careqUser"));
+      if (!userData || userData.type !== "patient") {
+        window.location.href = "index.html";
         return;
       }
-
-      // Show patient name
-      document.getElementById('patientGreeting').textContent = `Welcome, ${userData.name}`;
+      document.getElementById("patientGreeting").textContent = `Welcome, ${userData.name}`;
 
       // Logout handler
-      document.getElementById('logoutBtn').addEventListener('click', function() {
-        sessionStorage.removeItem('careqUser');
-        window.location.href = 'index.html';
-      });
-
-      // Mock appointment search
-      document.getElementById('appointmentForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const loading = document.getElementById('loading');
-        const results = document.getElementById('results');
-        
-        loading.classList.remove('d-none');
-        results.classList.add('d-none');
-        
-        // Simulate API call
-        setTimeout(function() {
-          loading.classList.add('d-none');
-          results.classList.remove('d-none');
-          loadMockDoctors();
-        }, 1500);
+      document.getElementById("logoutBtn").addEventListener("click", () => {
+        sessionStorage.removeItem("careqUser");
+        window.location.href = "index.html";
       });
     });
 
-    function loadMockDoctors() {
-      const doctors = [
-        {
-          id: 1,
-          name: "Dr. Sarah Chen",
-          specialty: "Cardiology",
-          availability: "June 28, 10:00 AM",
-          distance: "2.5 km",
-          hospital: "Toronto General"
-        },
-        {
-          id: 2,
-          name: "Dr. Michael Wong",
-          specialty: "Neurology",
-          availability: "June 30, 2:00 PM",
-          distance: "5.1 km",
-          hospital: "Sunnybrook"
-        }
-      ];
+    // Analyze symptoms with Google NLP API
+    async function analyzeSymptomsWithAI(text) {
+      const apiKey = "AIzaSyAs6OBCykBf36UDrigmNQqztDgwyYPdHYo";
+      const url = `https://language.googleapis.com/v1/documents:analyzeEntities?key=${apiKey}`;
 
-      const container = document.getElementById('doctorResults');
-      container.innerHTML = '';
+      const body = {
+        document: { type: "PLAIN_TEXT", content: text },
+        encodingType: "UTF8"
+      };
 
-      doctors.forEach(doctor => {
+      const response = await fetch(url, {
+        method: "POST",
+        body: JSON.stringify(body),
+        headers: { "Content-Type": "application/json" }
+      });
+
+      const result = await response.json();
+      return result.entities ? result.entities.map(e => e.name.toLowerCase()) : [];
+    }
+
+    // Detect urgency based on symptoms entities
+    async function detectUrgencyWithAI(text) {
+      const entities = await analyzeSymptomsWithAI(text);
+      const highRisk = ["chest pain", "shortness of breath", "stroke", "seizure"];
+      const mediumRisk = ["fever", "headache", "fatigue", "dizziness"];
+
+      for (const keyword of highRisk) if (entities.includes(keyword)) return "emergency";
+      for (const keyword of mediumRisk) if (entities.includes(keyword)) return "urgent";
+      return "routine";
+    }
+
+    // Initialize Google Map for a clinic
+    function initMap(lat, lng, mapDivId) {
+      const map = new google.maps.Map(document.getElementById(mapDivId), {
+        zoom: 13,
+        center: { lat, lng }
+      });
+      new google.maps.Marker({ position: { lat, lng }, map });
+    }
+
+    // Display clinic cards + maps
+    function displayClinics(matchedClinics) {
+      const container = document.getElementById("doctorResults");
+      container.innerHTML = "";
+
+      matchedClinics.forEach((clinic, idx) => {
+        const mapDivId = `map-${idx}`;
         container.innerHTML += `
-          <div class="col-md-6">
+          <div class="col-md-6 mb-4">
             <div class="card clinic-card h-100">
               <div class="card-body">
-                <h5>${doctor.name}</h5>
-                <p class="text-success mb-1"><strong>${doctor.specialty}</strong></p>
-                <p class="mb-1"><i class="fas fa-clock me-1"></i> ${doctor.availability}</p>
-                <p class="mb-1"><i class="fas fa-hospital me-1"></i> ${doctor.hospital}</p>
-                <p class="mb-3"><i class="fas fa-location-arrow me-1"></i> ${doctor.distance}</p>
-                <button class="btn btn-primary btn-sm book-btn" data-id="${doctor.id}">
+                <h5>${clinic.clinic}</h5>
+                <p><strong>Specialist:</strong> ${clinic.specialist}</p>
+                <p><strong>Available Date:</strong> ${clinic.available_date}</p>
+                <p><strong>City:</strong> ${clinic.city}</p>
+                <button class="btn btn-primary btn-sm book-btn" data-clinic="${clinic.clinic}">
                   Book Appointment
                 </button>
+                <div id="${mapDivId}" style="height:150px; margin-top:10px;"></div>
               </div>
             </div>
           </div>
         `;
+        setTimeout(() => initMap(clinic.lat, clinic.lng, mapDivId), 500);
       });
 
-      // Add booking handlers
-      document.querySelectorAll('.book-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-          const doctorId = this.getAttribute('data-id');
-          alert(`Booking appointment with doctor ID: ${doctorId}\n(Would connect to backend in real app)`);
+      // Booking button event listener
+      document.querySelectorAll(".book-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const clinicName = btn.getAttribute("data-clinic");
+          bookAppointment(clinicName);
         });
       });
     }
+
+    // Save booking in Firebase
+    async function saveBooking(bookingData) {
+      try {
+        const docRef = await db.collection("bookings").add(bookingData);
+        console.log("Booking saved with ID:", docRef.id);
+        alert(`Appointment booked at ${bookingData.clinic}!`);
+      } catch (e) {
+        console.error("Error saving booking:", e);
+        alert("Failed to book appointment, please try again.");
+      }
+    }
+
+    // Booking handler
+    function bookAppointment(clinicName) {
+      const bookingData = {
+        clinic: clinicName,
+        patientName: JSON.parse(sessionStorage.getItem("careqUser")).name,
+        symptoms: document.getElementById("symptoms").value,
+        urgency: document.getElementById("urgency").value,
+        location: document.getElementById("location").value,
+        bookedAt: new Date()
+      };
+      saveBooking(bookingData);
+    }
+
+    // Form submit handler
+    document.getElementById("appointmentForm").addEventListener("submit", async e => {
+      e.preventDefault();
+
+      const symptoms = document.getElementById("symptoms").value.trim();
+      const location = document.getElementById("location").value.trim().toLowerCase();
+
+      // Show loading
+      document.getElementById("loading").classList.remove("d-none");
+      document.getElementById("results").classList.add("d-none");
+
+      // Detect urgency with AI
+      const urgency = await detectUrgencyWithAI(symptoms);
+
+      // Filter clinics by urgency and location
+let matchedClinics = clinics.filter(
+  c => c.urgency_level === urgency && c.city.includes(location)
+);
+
+// If none found by city, filter only by urgency
+if (matchedClinics.length === 0) {
+  matchedClinics = clinics.filter(c => c.urgency_level === urgency);
+}
+
+// ✅ Take at least 2 results if possible
+matchedClinics = matchedClinics.slice(0, 2);
+
+      // If none found by city, filter only by urgency
+      if (matchedClinics.length === 0) {
+        matchedClinics = clinics.filter(c => c.urgency_level === urgency);
+      }
+
+      // Hide loading and show results
+      document.getElementById("loading").classList.add("d-none");
+      document.getElementById("results").classList.remove("d-none");
+
+      if (matchedClinics.length === 0) {
+        document.getElementById("doctorResults").innerHTML =
+          "<p>No clinics found for your symptoms and location.</p>";
+      } else {
+        displayClinics(matchedClinics);
+      }
+    });
   </script>
 </body>
 </html>

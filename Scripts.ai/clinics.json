@@ -1,0 +1,30 @@
+[
+    {
+      "clinic": "Downtown Medical Center",
+      "city": "toronto",
+      "specialist": "Cardiologist",
+      "available_date": "2025-07-01",
+      "urgency_level": "high"
+    },
+    {
+      "clinic": "Uptown Family Clinic",
+      "city": "mississauga",
+      "specialist": "General Physician",
+      "available_date": "2025-07-05",
+      "urgency_level": "medium"
+    },
+    {
+      "clinic": "CareWell Health",
+      "city": "brampton",
+      "specialist": "Neurologist",
+      "available_date": "2025-07-03",
+      "urgency_level": "high"
+    },
+    {
+      "clinic": "Green Life Clinic",
+      "city": "toronto",
+      "specialist": "Dermatologist",
+      "available_date": "2025-07-10",
+      "urgency_level": "low"
+    }
+]

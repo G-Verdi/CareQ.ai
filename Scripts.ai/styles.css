@@ -1,32 +1,128 @@
+/* Root colors for CareQ.ai branding */
 :root {
   --careq-primary: #084298;
   --careq-secondary: #0d6efd;
 }
 
+/* Body and global styles */
 body {
+  font-family: Arial, sans-serif;
   background-color: #f8f9fa;
+  margin: 0;
+  padding: 2rem;
 }
 
+/* Container styling */
+.container {
+  max-width: 500px;
+  margin: auto;
+  background: white;
+  padding: 2rem;
+  border-radius: 10px;
+  box-shadow: 0 0 10px #ccc;
+}
+
+/* Navbar override */
 .navbar {
   background-color: var(--careq-primary) !important;
 }
 
+/* Primary buttons */
 .btn-primary {
   background-color: var(--careq-primary);
   border-color: var(--careq-primary);
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+.btn-primary:hover {
+  background-color: var(--careq-secondary);
+  border-color: var(--careq-secondary);
 }
 
+/* Card styling */
 .card {
   border-radius: 10px;
+  padding: 15px;
+  margin-bottom: 15px;
+  box-shadow: 0 2px 6px rgb(0 0 0 / 0.1);
 }
 
-#results {
-  transition: all 0.3s ease;
-}
-
+/* Clinic card specifics */
 .clinic-card {
   border-left: 3px solid var(--careq-secondary);
   padding: 15px;
   margin-bottom: 15px;
   border-radius: 5px;
+  transition: all 0.3s ease;
+}
+
+.clinic-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+/* Smooth transition for results container */
+#results {
+  transition: all 0.3s ease;
+}
+
+/* Form styles */
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  font-weight: 600;
+  color: #333;
+}
+
+textarea, input[type="text"], select {
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 1rem;
+  resize: vertical;
+}
+
+button {
+  padding: 0.5rem;
+  background-color: var(--careq-primary);
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.3s ease;
+}
+button:hover {
+  background-color: var(--careq-secondary);
+}
+
+/* Loading spinner container */
+#loading {
+  text-align: center;
+  padding: 3rem 0;
+}
+
+/* Doctor results grid */
+#doctorResults {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+/* Responsive tweaks */
+@media (max-width: 767px) {
+  .container {
+    padding: 1rem;
+    margin: 1rem;
+  }
+  #doctorResults {
+    grid-template-columns: 1fr;
+  }
 }
